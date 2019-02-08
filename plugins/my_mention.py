@@ -7,9 +7,15 @@ import plugins.DoorChecker as dc
 # @respond_to('string')     bot宛のメッセージ
 # message.reply('string')   @発言者名: string でメッセージを送信
 
+
+@respond_to('起動')
+def Start_DoorCheck(message):
+    Door_State = dc.StartDoorChecker()
+    message.reply('ドアチェッカーを起動しました。') # メンション
+
 @respond_to('閉まってる？')
 def mention_func(message):
-    Door_State = dc.GetDoorState("/dev/ttyUSB0")
+    Door_State = dc.GetDoorState()
     print(Door_State)
     if Door_State == 1:
         message.reply('ドアの鍵は閉まっています') # メンション
@@ -27,6 +33,7 @@ def weather(message):
     # '270000'とすると大阪の情報を取得してくれる
     # '130010'とすると東京の情報を取得してくれる
     # ここを変えれば任意の地域の天気情報を取得できる
+    # 参考Webページ https://qiita.com/usomaru/items/529b6f40902ee1eda125
     city_id = '270000'
     html = urllib.request.urlopen(url + city_id)
     jsonfile = json.loads(html.read().decode('utf-8'))

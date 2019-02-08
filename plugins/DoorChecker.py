@@ -11,24 +11,30 @@
 ###########################################################################
 
 #パッケージのimport
+import time
+import concurrent.futures
 from serial import *
 from sys import stdout, stdin, stderr, exit
 from time import sleep
 
-def GetDoorState(portname):
-    # シリアルポートを開く ボーレート：115200　
+#0:null 1:close 2:open
+Door_State = 0
+
+#ドアの施錠状態を監視する
+def WatchDoorState():
+    global Door_State
+    print("WatchDoorState")
+    # シリアルポートを開く ボーレート：115200
     try:
-        ser = Serial(portname, 115200)
-        print("open serial port: %s" % portname)
+        ser = Serial("/dev/ttyUSB0", 115200)
+        print("open serial port: /dev/ttyUSB0")
     except:
-        print("cannot open serial port: %s" % portname)
+        print("cannot open serial port: /dev/ttyUSB0")
         exit(1)
 
-    #0:null 1:close 2:open
-    Door_State = 0
     Counter = 0
 
-    # データを１行ずつ解釈する
+    # データを１行ずつ解釈し続ける
     while True:
         coordinate = []
         line_array = []
@@ -54,13 +60,17 @@ def GetDoorState(portname):
             else:
                 print("The door is open")
                 Door_State = 2
-            break
-        sleep(1)
-        Counter += 1
-        if Counter > 30:
-            print("Time out")
-            break
+            Counter = 0
 
+#施錠状態検知関数のスレッドを起動する
+def StartDoorChecker():
+    print("Start_DoorChecker")
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    executor.submit(WatchDoorState)
+
+#施錠状態を返す
+def GetDoorState():
+    print("DoorState: %d " % Door_State)
     return Door_State
 
 
